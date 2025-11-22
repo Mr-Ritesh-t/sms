@@ -6,20 +6,26 @@ import { School } from 'lucide-react';
 import { MainNav } from '@/components/navigation/main-nav';
 import { UserNav } from '@/components/navigation/user-nav';
 import { FirebaseClientProvider, useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { UserRoleProvider } from '@/hooks/use-user-role';
 import { redirect } from 'next/navigation';
+import { useEffect } from 'react';
 
-// NOTE: The server-side redirect logic has been moved to a higher-level layout
-// or middleware. This component now assumes it will only be rendered for
-// authenticated users. The client-side check remains as a fallback.
+// This is a server component wrapper to handle initial auth check
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  // The FirebaseClientProvider is crucial here to provide Firebase context
+  // to all child components, including the auth-aware AppLayoutContent.
+  return (
+    <FirebaseClientProvider>
+      <AppLayoutContent>{children}</AppLayoutContent>
+    </FirebaseClientProvider>
+  );
+}
 
+// This is the main client component for the layout.
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
-  const router = useRouter();
   const firestore = useFirestore();
 
   const userProfileRef = useMemoFirebase(
@@ -27,18 +33,23 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     [user, firestore]
   );
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-
+  
+  // This effect handles the case where a user logs out.
+  // If the user object becomes null after the initial load, it means they logged out.
+  // We then redirect them to the login page.
   useEffect(() => {
-    // Fallback client-side check in case the server-side check fails
     if (!isUserLoading && !user) {
-      router.push('/login');
+      // Using window.location.href forces a full page reload, which is a robust
+      // way to clear all state and ensure the user lands cleanly on the login page.
+      window.location.href = '/login';
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading]);
+
 
   const isLoading = isUserLoading || isProfileLoading;
 
-  // If we are loading or the user is not authenticated, show a loading screen.
-  // The server redirect or the useEffect above will handle navigation to the login page.
+  // While we are verifying the user and their profile, show a loading screen.
+  // If the user logs out, the useEffect above will trigger the redirect.
   if (isLoading || !user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
@@ -47,6 +58,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Once the user and profile are loaded, render the full app layout.
   return (
     <UserRoleProvider role={userProfile?.role || null}>
       <SidebarProvider>
@@ -73,16 +85,5 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         </SidebarInset>
       </SidebarProvider>
     </UserRoleProvider>
-  );
-}
-
-
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  // This layout now primarily provides the Firebase context to its children.
-  // The client-side Firebase initialization happens here.
-  return (
-    <FirebaseClientProvider>
-      <AppLayoutContent>{children}</AppLayoutContent>
-    </FirebaseClientProvider>
   );
 }

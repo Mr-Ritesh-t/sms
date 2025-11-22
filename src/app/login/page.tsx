@@ -25,8 +25,8 @@ export default function LoginPage() {
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // If the user is authenticated, redirect them to the dashboard.
-    // This handles the case where a logged-in user tries to access the login page.
+    // If a logged-in user somehow lands on the login page, redirect them away.
+    // This is a failsafe.
     if (!isUserLoading && user) {
       router.push('/dashboard');
     }
@@ -48,6 +48,8 @@ export default function LoginPage() {
     setError(null);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
+      // NOTE: After sign-up, you might want to create a user profile in Firestore.
+      // We are just redirecting for now.
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -63,11 +65,21 @@ export default function LoginPage() {
       setError(err.message);
     }
   };
-
-  // We no longer need a loading state here. The main app layout handles it.
-  // If the user lands on this page, we can be confident they are logged out.
-
-  return (
+  
+  // If the page is loading user status, we can show nothing or a minimal spinner,
+  // but we must avoid showing the main content to prevent a flash of the login form
+  // for an already authenticated user.
+  if (isUserLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+  
+  // Only render the login form if there is no user.
+  // The useEffect above will handle redirecting if a user is found.
+  return !user && (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="w-full max-w-md space-y-6">
              <div className="text-center space-y-2">
