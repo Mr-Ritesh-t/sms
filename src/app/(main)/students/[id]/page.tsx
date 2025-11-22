@@ -10,7 +10,8 @@ import { Mail, Phone, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
-import type { Student, Course, Grade, Enrollment } from '@/lib/types';
+import type { Student, Course, Grade, Enrollment, StudentFee, FeeStructure } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
 
 export default function StudentProfilePage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
@@ -32,10 +33,30 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
     }
     return null;
   }, [firestore, courseIds]);
-
   const { data: courses, isLoading: areCoursesLoading } = useCollection<Course>(coursesQuery);
 
-  if (isStudentLoading || areEnrollmentsLoading || areGradesLoading || areCoursesLoading) {
+  const studentFeesQuery = useMemoFirebase(() => query(collection(firestore, 'studentFees'), where('studentId', '==', params.id)), [firestore, params.id]);
+  const { data: studentFees, isLoading: areStudentFeesLoading } = useCollection<StudentFee>(studentFeesQuery);
+
+  const feeStructureIds = useMemoFirebase(() => studentFees?.map(sf => sf.feeId) || [], [studentFees]);
+  
+  const feeStructuresQuery = useMemoFirebase(() => {
+    if (feeStructureIds.length > 0) {
+      return query(collection(firestore, 'feeStructures'), where('id', 'in', feeStructureIds));
+    }
+    return null;
+  }, [firestore, feeStructureIds]);
+  const { data: feeStructures, isLoading: areFeeStructuresLoading } = useCollection<FeeStructure>(feeStructuresQuery);
+
+  const feeStructureMap = useMemoFirebase(() => {
+    return feeStructures?.reduce((acc, fs) => {
+      acc[fs.id] = fs;
+      return acc;
+    }, {} as Record<string, FeeStructure>) || {};
+  }, [feeStructures]);
+
+
+  if (isStudentLoading || areEnrollmentsLoading || areGradesLoading || areCoursesLoading || areStudentFeesLoading || areFeeStructuresLoading) {
     return <div className="flex-1 space-y-4 p-4 sm:p-6">Loading...</div>;
   }
 
@@ -51,7 +72,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
         <Button>Edit Profile</Button>
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-1">
+        <div className="md:col-span-1 space-y-6">
           <Card>
             <CardHeader className="items-center text-center">
               <Avatar className="h-24 w-24 mb-4">
@@ -80,6 +101,46 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
                 </div>
             </CardContent>
           </Card>
+           <Card>
+            <CardHeader>
+                <CardTitle>Fee Status</CardTitle>
+                <CardDescription>All assigned fees and their status.</CardDescription>
+            </CardHeader>
+            <CardContent>
+               <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Fee</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {studentFees?.map(fee => {
+                           const feeInfo = feeStructureMap[fee.feeId];
+                           if (!feeInfo) return null;
+
+                           const statusVariant = fee.status === 'Paid' ? 'default' : fee.status === 'Overdue' ? 'destructive' : 'secondary';
+
+                           return (
+                             <TableRow key={fee.id}>
+                                <TableCell className="font-medium">{feeInfo.name}</TableCell>
+                                <TableCell>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(feeInfo.amount)}</TableCell>
+                                <TableCell>
+                                    <Badge variant={statusVariant}>{fee.status}</Badge>
+                                </TableCell>
+                            </TableRow>
+                           );
+                        })}
+                         {studentFees?.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-center">No fees assigned.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+               </Table>
+            </CardContent>
+           </Card>
         </div>
         <div className="md:col-span-2">
             <Card>
