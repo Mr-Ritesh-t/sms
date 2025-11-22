@@ -95,7 +95,7 @@ service cloud.firestore {
 */
     match /courses/{courseId} {
       allow get, list: if isSignedIn();
-      allow write: if isAdmin(); // create, update, delete
+      allow write: if isSignedIn();
     }
 
 
