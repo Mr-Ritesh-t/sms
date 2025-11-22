@@ -8,16 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Mail, Phone, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { Student, Course, Grade, Enrollment } from '@/lib/types';
-import { useCollection } from '@/firebase';
 
 export default function StudentProfilePage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
 
   const studentRef = useMemoFirebase(() => doc(firestore, 'students', params.id), [firestore, params.id]);
-  const { data: student, isLoading: isStudentLoading } = useDoc<Omit<Student, 'id'>>(studentRef);
+  const { data: student, isLoading: isStudentLoading } = useDoc<Student>(studentRef);
 
   const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('studentId', '==', params.id)), [firestore, params.id]);
   const { data: enrollments, isLoading: areEnrollmentsLoading } = useCollection<Enrollment>(enrollmentsQuery);
@@ -26,7 +25,14 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
   const { data: grades, isLoading: areGradesLoading } = useCollection<Grade>(gradesQuery);
   
   const courseIds = useMemoFirebase(() => enrollments?.map(e => e.courseId) || [], [enrollments]);
-  const coursesQuery = useMemoFirebase(() => courseIds?.length > 0 ? query(collection(firestore, 'courses'), where('id', 'in', courseIds)) : null, [firestore, courseIds]);
+  
+  const coursesQuery = useMemoFirebase(() => {
+    if (courseIds.length > 0) {
+      return query(collection(firestore, 'courses'), where('id', 'in', courseIds));
+    }
+    return null;
+  }, [firestore, courseIds]);
+
   const { data: courses, isLoading: areCoursesLoading } = useCollection<Course>(coursesQuery);
 
   if (isStudentLoading || areEnrollmentsLoading || areGradesLoading || areCoursesLoading) {
@@ -96,7 +102,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
                         const gradeInfo = grades?.find(g => g.courseId === enrollment.courseId);
                         if (!course) return null;
                         return (
-                        <TableRow key={enrollment.courseId}>
+                        <TableRow key={enrollment.id}>
                             <TableCell className="font-medium">{course.name}</TableCell>
                             <TableCell>{course.description}</TableCell>
                             <TableCell className="text-right font-semibold">{gradeInfo?.grade || 'In Progress'}</TableCell>

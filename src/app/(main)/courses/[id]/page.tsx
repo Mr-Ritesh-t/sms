@@ -13,19 +13,25 @@ import type { Course, Teacher, Student, Grade, Enrollment } from '@/lib/types';
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
   const courseRef = useMemoFirebase(() => doc(firestore, 'courses', params.id), [firestore, params.id]);
-  const { data: course, isLoading: courseLoading } = useDoc<Omit<Course, 'id'>>(courseRef);
+  const { data: course, isLoading: courseLoading } = useDoc<Course>(courseRef);
 
   const teacherRef = useMemoFirebase(() => course ? doc(firestore, 'teachers', course.teacherId) : null, [firestore, course]);
-  const { data: teacher, isLoading: teacherLoading } = useDoc<Omit<Teacher, 'id'>>(teacherRef);
+  const { data: teacher, isLoading: teacherLoading } = useDoc<Teacher>(teacherRef);
 
   const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('courseId', '==', params.id)), [firestore, params.id]);
   const { data: enrollments, isLoading: enrollmentsLoading } = useCollection<Enrollment>(enrollmentsQuery);
   
   const studentIds = useMemoFirebase(() => enrollments?.map(e => e.studentId) || [], [enrollments]);
-  const studentsQuery = useMemoFirebase(() => studentIds.length > 0 ? query(collection(firestore, 'students'), where('id', 'in', studentIds)) : null, [firestore, studentIds]);
+  
+  const studentsQuery = useMemoFirebase(() => {
+    if (studentIds.length > 0) {
+      return query(collection(firestore, 'students'), where('id', 'in', studentIds));
+    }
+    return null;
+  }, [firestore, studentIds]);
   const { data: enrolledStudents, isLoading: studentsLoading } = useCollection<Student>(studentsQuery);
 
-  const initialGradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('courseId', '==', params.id)), [firestore, paramsid]);
+  const initialGradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('courseId', '==', params.id)), [firestore, params.id]);
   const { data: initialGrades, isLoading: gradesLoading } = useCollection<Grade>(initialGradesQuery);
 
 
@@ -53,7 +59,6 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                <CardDescription>{course.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{course.description}</p>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />

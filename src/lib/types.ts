@@ -27,12 +27,15 @@ export type Course = {
 };
 
 export type Enrollment = {
+  id: string;
   studentId: string;
   courseId: string;
 };
 
 export type Grade = {
+  id: string;
   studentId: string;
   courseId: string;
   grade: string;
+  submissionDate: string;
 };
