@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlusCircle, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Teacher } from '@/lib/types';
-
+import { AddTeacherDialog } from './_components/add-teacher-dialog';
 
 export default function TeachersPage() {
   const firestore = useFirestore();
@@ -19,9 +19,7 @@ export default function TeachersPage() {
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">
       <PageHeader title="Teachers">
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Teacher
-        </Button>
+        <AddTeacherDialog />
       </PageHeader>
       <Card>
         <CardHeader>
