@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { GraduationCap } from 'lucide-react';
+import { School } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -71,9 +71,9 @@ export default function LoginPage() {
              <div className="text-center space-y-2">
                 <div className="flex justify-center items-center gap-2.5 font-semibold text-2xl">
                     <div className="rounded-lg grid place-content-center size-9 text-primary bg-primary/10">
-                        <GraduationCap className="h-6 w-6" />
+                        <School className="h-6 w-6" />
                     </div>
-                    <span className="transition-opacity duration-200">CampusFlow</span>
+                    <span className="transition-opacity duration-200">School Management System</span>
                 </div>
                 <p className="text-muted-foreground">Welcome! Please sign in to continue.</p>
             </div>

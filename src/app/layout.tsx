@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'CampusFlow',
+  title: 'School Management System',
   description: 'A comprehensive school management web app for streamlined administrative tasks.',
 };
 

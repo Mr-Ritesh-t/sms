@@ -1,7 +1,7 @@
 'use client';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { GraduationCap } from 'lucide-react';
+import { School } from 'lucide-react';
 import { MainNav } from './_components/main-nav';
 import { UserNav } from './_components/user-nav';
 import { FirebaseClientProvider, useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { UserRoleProvider, useUserRole } from '@/hooks/use-user-role';
+import { UserRoleProvider } from '@/hooks/use-user-role';
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -45,9 +45,9 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
           <SidebarHeader className="p-4">
             <Link href="/dashboard" className="flex items-center gap-2.5 font-semibold text-lg">
               <div className="rounded-lg grid place-content-center size-8 text-primary bg-primary/10 hover:bg-primary/20">
-                <GraduationCap className="h-5 w-5" />
+                <School className="h-5 w-5" />
               </div>
-              <span className="group-data-[collapsible=icon]:opacity-0 transition-opacity duration-200">CampusFlow</span>
+              <span className="group-data-[collapsible=icon]:opacity-0 transition-opacity duration-200">School Management</span>
             </Link>
           </SidebarHeader>
           <SidebarContent className="p-2 pt-0">
