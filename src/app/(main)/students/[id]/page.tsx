@@ -15,6 +15,7 @@ import type { Student, Course, Grade, Enrollment, StudentFee, FeeStructure } fro
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { EditStudentDialog } from '@/components/dialogs/edit-student-dialog';
+import { useMemo } from 'react';
 
 export default function StudentProfilePage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -29,7 +30,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
   const gradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('studentId', '==', id)), [firestore, id]);
   const { data: grades, isLoading: areGradesLoading } = useCollection<Grade>(gradesQuery);
   
-  const courseIds = useMemoFirebase(() => enrollments?.map(e => e.courseId) || [], [enrollments]);
+  const courseIds = useMemo(() => enrollments?.map(e => e.courseId) || [], [enrollments]);
   
   const coursesQuery = useMemoFirebase(() => {
     if (courseIds.length > 0) {
@@ -42,7 +43,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
   const studentFeesQuery = useMemoFirebase(() => query(collection(firestore, 'studentFees'), where('studentId', '==', id)), [firestore, id]);
   const { data: studentFees, isLoading: areStudentFeesLoading } = useCollection<StudentFee>(studentFeesQuery);
 
-  const feeStructureIds = useMemoFirebase(() => studentFees?.map(sf => sf.feeId) || [], [studentFees]);
+  const feeStructureIds = useMemo(() => studentFees?.map(sf => sf.feeId) || [], [studentFees]);
   
   const feeStructuresQuery = useMemoFirebase(() => {
     if (feeStructureIds.length > 0) {
@@ -52,7 +53,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
   }, [firestore, feeStructureIds]);
   const { data: feeStructures, isLoading: areFeeStructuresLoading } = useCollection<FeeStructure>(feeStructuresQuery);
 
-  const feeStructureMap = useMemoFirebase(() => {
+  const feeStructureMap = useMemo(() => {
     return feeStructures?.reduce((acc, fs) => {
       acc[fs.id] = fs;
       return acc;
