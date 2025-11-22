@@ -10,9 +10,10 @@ import { School } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function StudentIdCardPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const firestore = useFirestore();
 
-  const studentRef = useMemoFirebase(() => doc(firestore, 'students', params.id), [firestore, params.id]);
+  const studentRef = useMemoFirebase(() => doc(firestore, 'students', id), [firestore, id]);
   const { data: student, isLoading: isStudentLoading } = useDoc<Student>(studentRef);
 
   if (isStudentLoading) {
@@ -95,5 +96,3 @@ export default function StudentIdCardPage({ params }: { params: { id: string } }
     </div>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 'use client';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/PageHeader';
@@ -14,11 +15,12 @@ import type { Teacher, Course } from '@/lib/types';
 
 
 export default function TeacherProfilePage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const firestore = useFirestore();
-  const teacherRef = useMemoFirebase(() => doc(firestore, 'teachers', params.id), [firestore, params.id]);
+  const teacherRef = useMemoFirebase(() => doc(firestore, 'teachers', id), [firestore, id]);
   const { data: teacher, isLoading: teacherLoading } = useDoc<Teacher>(teacherRef);
 
-  const coursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses'), where('teacherId', '==', params.id)), [firestore, params.id]);
+  const coursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses'), where('teacherId', '==', id)), [firestore, id]);
   const { data: assignedCourses, isLoading: coursesLoading } = useCollection<Course>(coursesQuery);
 
   if (teacherLoading || coursesLoading) {

@@ -14,15 +14,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const firestore = useFirestore();
   const { role } = useUserRole();
-  const courseRef = useMemoFirebase(() => doc(firestore, 'courses', params.id), [firestore, params.id]);
+  const courseRef = useMemoFirebase(() => doc(firestore, 'courses', id), [firestore, id]);
   const { data: course, isLoading: courseLoading } = useDoc<Course>(courseRef);
 
   const teacherRef = useMemoFirebase(() => course ? doc(firestore, 'teachers', course.teacherId) : null, [firestore, course]);
   const { data: teacher, isLoading: teacherLoading } = useDoc<Teacher>(teacherRef);
 
-  const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('courseId', '==', params.id)), [firestore, params.id]);
+  const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('courseId', '==', id)), [firestore, id]);
   const { data: enrollments, isLoading: enrollmentsLoading } = useCollection<Enrollment>(enrollmentsQuery);
   
   const studentIds = useMemoFirebase(() => enrollments?.map(e => e.studentId) || [], [enrollments]);
@@ -35,7 +36,7 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
   }, [firestore, studentIds]);
   const { data: enrolledStudents, isLoading: studentsLoading } = useCollection<Student>(studentsQuery);
 
-  const initialGradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('courseId', '==', params.id)), [firestore, params.id]);
+  const initialGradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('courseId', '==', id)), [firestore, id]);
   const { data: initialGrades, isLoading: gradesLoading } = useCollection<Grade>(initialGradesQuery);
 
 

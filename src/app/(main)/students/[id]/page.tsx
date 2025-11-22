@@ -17,15 +17,16 @@ import Link from 'next/link';
 import { EditStudentDialog } from '@/components/dialogs/edit-student-dialog';
 
 export default function StudentProfilePage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const firestore = useFirestore();
 
-  const studentRef = useMemoFirebase(() => doc(firestore, 'students', params.id), [firestore, params.id]);
+  const studentRef = useMemoFirebase(() => doc(firestore, 'students', id), [firestore, id]);
   const { data: student, isLoading: isStudentLoading } = useDoc<Student>(studentRef);
 
-  const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('studentId', '==', params.id)), [firestore, params.id]);
+  const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('studentId', '==', id)), [firestore, id]);
   const { data: enrollments, isLoading: areEnrollmentsLoading } = useCollection<Enrollment>(enrollmentsQuery);
 
-  const gradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('studentId', '==', params.id)), [firestore, params.id]);
+  const gradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('studentId', '==', id)), [firestore, id]);
   const { data: grades, isLoading: areGradesLoading } = useCollection<Grade>(gradesQuery);
   
   const courseIds = useMemoFirebase(() => enrollments?.map(e => e.courseId) || [], [enrollments]);
@@ -38,7 +39,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
   }, [firestore, courseIds]);
   const { data: courses, isLoading: areCoursesLoading } = useCollection<Course>(coursesQuery);
 
-  const studentFeesQuery = useMemoFirebase(() => query(collection(firestore, 'studentFees'), where('studentId', '==', params.id)), [firestore, params.id]);
+  const studentFeesQuery = useMemoFirebase(() => query(collection(firestore, 'studentFees'), where('studentId', '==', id)), [firestore, id]);
   const { data: studentFees, isLoading: areStudentFeesLoading } = useCollection<StudentFee>(studentFeesQuery);
 
   const feeStructureIds = useMemoFirebase(() => studentFees?.map(sf => sf.feeId) || [], [studentFees]);
@@ -73,7 +74,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
     <div className="flex-1 space-y-4 p-4 sm:p-6">
       <PageHeader title="Student Profile">
         <Button asChild variant="outline">
-          <Link href={`/students/${params.id}/id-card`}>
+          <Link href={`/students/${id}/id-card`}>
             <CreditCard className="mr-2 h-4 w-4" />
             Generate ID Card
           </Link>
