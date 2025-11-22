@@ -50,3 +50,26 @@ export type Grade = {
   grade: string;
   submissionDate: string;
 };
+
+export type FeeStructure = {
+    id: string;
+    name: string;
+    description: string;
+    amount: number;
+};
+
+export type StudentFee = {
+    id: string;
+    studentId: string;
+    feeId: string;
+    dueDate: string;
+    status: 'Paid' | 'Unpaid' | 'Overdue';
+};
+
+export type Payment = {
+    id: string;
+    studentFeeId: string;
+    amount: number;
+    paymentDate: string;
+    method: string;
+};

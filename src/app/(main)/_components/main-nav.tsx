@@ -1,7 +1,7 @@
 'use client';
 
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Users, User, Book } from 'lucide-react';
+import { LayoutDashboard, Users, User, Book, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -10,6 +10,7 @@ const links = [
   { href: '/students', label: 'Students', icon: Users },
   { href: '/teachers', label: 'Teachers', icon: User },
   { href: '/courses', label: 'Courses', icon: Book },
+  { href: '/fees', label: 'Fees', icon: DollarSign },
 ];
 
 export function MainNav() {
