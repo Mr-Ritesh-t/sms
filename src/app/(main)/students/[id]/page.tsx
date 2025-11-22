@@ -1,3 +1,4 @@
+
 'use client';
 
 import { notFound } from 'next/navigation';
@@ -186,3 +187,5 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
     </div>
   );
 }
+
+    
