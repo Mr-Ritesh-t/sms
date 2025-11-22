@@ -7,7 +7,7 @@
  * grades is locked down by default pending a more detailed authorization schema.
  *
  * Data Structure: The database is organized into several top-level collections:
- * - /users/{userId}: Stores private user profile information.
+ * - /users/{userId}: Stores private user profile information, including roles.
  * - /students/{studentId}: A directory of all students in the system.
  * - /teachers/{teacherId}: A directory of all teachers in the system.
  * - /courses/{courseId}: A catalog of all available courses.
@@ -15,26 +15,13 @@
  *
  * Key Security Decisions:
  * - Default Deny: All paths are closed by default. Access is granted explicitly.
- * - No User Listing: To protect user privacy, querying the top-level /users
- *   collection is disallowed. Users can only fetch their own document directly.
- * - Prototyping-Friendly Writes: To support initial development ("make add button
- *   functional"), any authenticated user can create new students, teachers, and
- *   courses. However, editing or deleting this data is disabled until a proper
- *   ownership or admin role model is implemented in the data schema.
+ * - Role-Based Writes: Write access to core data collections (students, teachers, courses)
+ *   is restricted to users with an 'admin' role, defined in their /users/{userId} document.
+ * - Prototyping-Friendly Reads: To support UI development, any authenticated user can
+ *   currently read the main data collections. This should be tightened in the future.
  * - Sensitive Data Lockdown: The /grades collection is completely locked. The
  *   current data model does not contain the necessary information (e.g., a link
  *   between a student and a user's auth ID) to write secure authorization rules.
- *
- * Denormalization for Authorization: For this ruleset to evolve, denormalization
- * will be critical. To implement owner-only writes on collections like /students
- * or /courses, an `ownerId` or `creatorId` field must be added to those documents.
- * To secure /grades, the student's `userId` and the course's `teacherId` should
- * be denormalized directly onto each grade document.
- *
- * Structural Segregation: The data model correctly uses separate top-level
- * collections for different data types (e.g., /students, /teachers). This is a
- * secure and performant pattern that simplifies access control, especially for
- * list operations.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -58,142 +45,92 @@ service cloud.firestore {
     }
 
     /**
+     * Checks if the authenticated user has the 'admin' role.
+     * It reads the user's role from their profile document in the /users collection.
+     * IMPORTANT: This requires that a 'users/{userId}' document exists for the user.
+     */
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    /**
      * @description
      *   Manages user profile data. Each user has a document in this collection,
      *   and only that specific user can access or modify their own document.
      *   Listing all users is explicitly forbidden to protect privacy.
      * @path /users/{userId}
-     * @allow (get) An authenticated user requests their own document:
-     *   `db.collection('users').doc('user_abc').get()` where auth.uid is 'user_abc'.
-     * @deny (get) A user attempts to read another user's document:
-     *   `db.collection('users').doc('user_xyz').get()` where auth.uid is 'user_abc'.
-     * @deny (list) Any user attempts to query the entire collection:
-     *   `db.collection('users').get()`.
-     * @principle
-     *   Restricts access to a user's own data tree and prevents user enumeration.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) && resource != null;
-      allow delete: if isOwner(userId) && resource != null;
+      allow read, write: if isOwner(userId);
+      allow list: if false; // Prevent user enumeration
     }
 
     /**
      * @description
-     *   Stores student profiles. In this prototyping stage, any authenticated
-     *   user can view the list of students and add new ones. Editing and
-     *   deleting are disallowed until a proper ownership or admin role system is
-     *   defined in the data schema.
+     *   Stores student profiles. Any authenticated user can read the list of
+     *   students, but only admins can create, update, or delete them.
      * @path /students/{studentId}
-     * @allow (create) An authenticated user adds a new student.
-     * @allow (list) An authenticated user fetches the list of all students.
-     * @deny (update) Any user attempts to modify an existing student document.
-     * @principle
-     *   Allows public read and create for bootstrapping an application, but
-     *   disables modification to prevent unauthorized data changes.
      */
     match /students/{studentId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isSignedIn();
-      // CRITICAL: Cannot implement owner-only writes. The 'Student' entity is missing an 'ownerId' or 'creatorId' field.
-      allow update: if false; // TODO: Add owner/admin validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner/admin validation once the schema is updated with an ownership field.
+      allow get, list: if isSignedIn();
+      allow write: if isAdmin(); // create, update, delete
     }
 
     /**
      * @description
      *   Stores teacher profiles. Access rules mirror the /students collection.
-     *   Any authenticated user can view and add teachers, but not modify or
-     *   delete them, ensuring data integrity during early development.
+     *   Any authenticated user can view teachers, but only admins can modify them.
      * @path /teachers/{teacherId}
-     * @allow (create) An authenticated user adds a new teacher.
-     * @allow (get) An authenticated user views a specific teacher's profile.
-     * @deny (delete) Any user attempts to delete a teacher's record.
-     * @principle
-     *   Allows public read and create for bootstrapping an application, but
-     *   disables modification to prevent unauthorized data changes.
      */
     match /teachers/{teacherId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isSignedIn();
-      // CRITICAL: Cannot implement owner-only writes. The 'Teacher' entity is missing an 'ownerId' or 'creatorId' field.
-      allow update: if false; // TODO: Add owner/admin validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner/admin validation once the schema is updated with an ownership field.
+      allow get, list: if isSignedIn();
+      allow write: if isAdmin(); // create, update, delete
     }
 
     /**
-     * @description
-     *   Stores course information. Following the same prototyping pattern, all
-     *   authenticated users can read the course catalog and create new courses.
-     *   Updates and deletes are forbidden pending a clear ownership model.
-     * @path /courses/{courseId}
-     * @allow (create) An authenticated user adds a new course.
-     * @allow (list) An authenticated user fetches the list of available courses.
-     * @deny (update) Any user attempts to change the details of an existing course.
-     * @principle
-     *   Allows public read and create for bootstrapping an application, but
-     *   disables modification to prevent unauthorized data changes.
-     */
+* @description
+* Stores course information. All authenticated users can read the course
+* catalog, but only admins can create, update, or delete courses.
+* @path /courses/{courseId}
+*/
     match /courses/{courseId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isSignedIn();
-      // CRITICAL: Cannot implement owner-only writes. The 'Course' entity is missing an 'ownerId' or 'creatorId' field.
-      allow update: if false; // TODO: Add owner/admin validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner/admin validation once the schema is updated with an ownership field.
+      allow get, list: if isSignedIn();
+      allow write: if isAdmin(); // create, update, delete
     }
+
 
     /**
      * @description
      *   Stores course enrollment information, linking students to courses.
      *   Any authenticated user can read this data to determine who is in
-     *   which course.
+     *   which course. Write access is restricted to admins.
      * @path /enrollments/{enrollmentId}
-     * @principle
-     *   Allows public read for assembling course and student views.
      */
     match /enrollments/{enrollmentId} {
-        allow get: if isSignedIn();
-        allow list: if isSignedIn();
-        allow create: if isSignedIn(); // Allow creating enrollments
-        allow update: if false;
-        allow delete: if false;
+        allow get, list: if isSignedIn();
+        allow write: if isAdmin();
     }
     
     /**
      * @description
      *   Stores fee structure definitions. Any authenticated user can read these
-     *   to display fee information, and create new ones.
+     *   to display fee information, but only admins can create or modify them.
      * @path /feeStructures/{feeId}
-     * @principle
-     *   Allows public read and create for bootstrapping the fees feature.
      */
     match /feeStructures/{feeId} {
-        allow get: if isSignedIn();
-        allow list: if isSignedIn();
-        allow create: if isSignedIn();
-        allow update: if false;
-        allow delete: if false;
+        allow get, list: if isSignedIn();
+        allow write: if isAdmin();
     }
 
     /**
      * @description
      *   Stores the fee status for each student. Read access is allowed for any
-     *   signed-in user to see fee details on profile pages.
+     *   signed-in user. Write access is restricted to admins.
      * @path /studentFees/{studentFeeId}
-     * @principle
-     *   Allows public read for displaying fee status.
      */
     match /studentFees/{studentFeeId} {
-        allow get: if isSignedIn();
-        allow list: if isSignedIn();
-        allow create: if isSignedIn();
-        allow update: if false;
-        allow delete: if false;
+        allow get, list: if isSignedIn();
+        allow write: if isAdmin();
     }
 
 
@@ -204,22 +141,13 @@ service cloud.firestore {
      *   fields (e.g., student's auth `userId`, course's `teacherId`) to create
      *   secure authorization rules.
      * @path /grades/{gradeId}
-     * @allow (none) No operations are permitted.
-     * @deny (any) Any user attempts to read, list, or write a grade document.
-     * @principle
-     *   Applies a "fail-closed" security posture for sensitive data when the
-     *   schema does not support secure authorization checks.
      */
     match /grades/{gradeId} {
       // CRITICAL: Access is fully denied. The 'Grade' entity schema does not contain
       // denormalized user IDs for the student or teacher, making it impossible to
       // write secure rules. To enable access, denormalize the student's auth UID
       // and the course's teacher's auth UID onto each grade document.
-      allow get: if false;
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write, delete: if false;
     }
   }
 }
