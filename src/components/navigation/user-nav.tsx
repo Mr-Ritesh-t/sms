@@ -11,13 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useSidebar } from '@/components/ui/sidebar';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 
 export function UserNav() {
-  const { state } = useSidebar();
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
@@ -28,46 +27,38 @@ export function UserNav() {
   };
   
   const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'U';
+  const userEmail = user?.email || 'No email provided';
+  const userName = user?.displayName || 'User';
 
-  if (state === 'collapsed') {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} data-ai-hint="person" />
-              <AvatarFallback>{userInitial}</AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="w-full justify-start gap-3 px-2 h-auto">
+          <Avatar className="h-9 w-9">
+             <AvatarImage src={user?.photoURL || ''} alt={userName} data-ai-hint="person" />
+            <AvatarFallback>{userInitial}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col items-start text-left group-data-[collapsible=icon]:hidden">
+            <p className="text-sm font-medium">{userName}</p>
+            <p className="text-xs text-muted-foreground truncate max-w-[120px]">{userEmail}</p>
+          </div>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user?.displayName || 'User'}</p>
+              <p className="text-sm font-medium leading-none">{userName}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                {user?.email || ''}
+                {userEmail}
               </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+           <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
-  return (
-    <div className="w-full">
-        <Button variant="ghost" className="w-full justify-start gap-3 px-2">
-          <Avatar className="h-9 w-9">
-             <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} data-ai-hint="person" />
-            <AvatarFallback>{userInitial}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col items-start text-left">
-            <p className="text-sm font-medium">{user?.displayName || 'User'}</p>
-            <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
-          </div>
-        </Button>
-    </div>
+    </DropdownMenu>
   );
 }
