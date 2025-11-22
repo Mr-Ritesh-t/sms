@@ -16,7 +16,7 @@ import { AddStudentDialog } from './_components/add-student-dialog';
 export default function StudentsPage() {
   const firestore = useFirestore();
   const studentsCollection = useMemoFirebase(() => collection(firestore, 'students'), [firestore]);
-  const { data: students, isLoading } = useCollection<Omit<Student, 'id'>>(studentsCollection);
+  const { data: students, isLoading } = useCollection<Student>(studentsCollection);
 
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">

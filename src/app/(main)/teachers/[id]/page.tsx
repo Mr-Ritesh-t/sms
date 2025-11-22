@@ -16,7 +16,7 @@ import type { Teacher, Course } from '@/lib/types';
 export default function TeacherProfilePage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
   const teacherRef = useMemoFirebase(() => doc(firestore, 'teachers', params.id), [firestore, params.id]);
-  const { data: teacher, isLoading: teacherLoading } = useDoc<Omit<Teacher, 'id'>>(teacherRef);
+  const { data: teacher, isLoading: teacherLoading } = useDoc<Teacher>(teacherRef);
 
   const coursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses'), where('teacherId', '==', params.id)), [firestore, params.id]);
   const { data: assignedCourses, isLoading: coursesLoading } = useCollection<Course>(coursesQuery);

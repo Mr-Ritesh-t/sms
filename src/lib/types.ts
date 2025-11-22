@@ -1,3 +1,13 @@
+export type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
+
+export type UserProfile = {
+  id: string;
+  role: UserRole;
+  studentId?: string;
+  teacherId?: string;
+  parentId?: string;
+};
+
 export type Student = {
   id: string;
   firstName: string;
@@ -8,7 +18,7 @@ export type Student = {
 };
 
 export type Teacher = {
-  id: string;
+  id:string;
   firstName: string;
   lastName: string;
   email: string;

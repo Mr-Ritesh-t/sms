@@ -14,7 +14,7 @@ import { AddTeacherDialog } from './_components/add-teacher-dialog';
 export default function TeachersPage() {
   const firestore = useFirestore();
   const teachersCollection = useMemoFirebase(() => collection(firestore, 'teachers'), [firestore]);
-  const { data: teachers, isLoading } = useCollection<Omit<Teacher, 'id'>>(teachersCollection);
+  const { data: teachers, isLoading } = useCollection<Teacher>(teachersCollection);
 
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">
