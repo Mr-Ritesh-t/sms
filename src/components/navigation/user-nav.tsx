@@ -13,17 +13,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 
 export function UserNav() {
   const { user } = useUser();
   const auth = useAuth();
-  const router = useRouter();
 
   const handleLogout = async () => {
     await signOut(auth);
-    router.push('/login');
+    // Force a full page reload to the login page to clear all state.
+    window.location.href = '/login';
   };
   
   const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : 'U';

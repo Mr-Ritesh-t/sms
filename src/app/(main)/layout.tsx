@@ -9,7 +9,6 @@ import { FirebaseClientProvider, useUser, useDoc, useFirestore, useMemoFirebase 
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { UserRoleProvider } from '@/hooks/use-user-role';
-import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 
 // This is a server component wrapper to handle initial auth check
