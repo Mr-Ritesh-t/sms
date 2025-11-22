@@ -149,6 +149,56 @@ service cloud.firestore {
 
     /**
      * @description
+     *   Stores course enrollment information, linking students to courses.
+     *   Any authenticated user can read this data to determine who is in
+     *   which course.
+     * @path /enrollments/{enrollmentId}
+     * @principle
+     *   Allows public read for assembling course and student views.
+     */
+    match /enrollments/{enrollmentId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isSignedIn(); // Allow creating enrollments
+        allow update: if false;
+        allow delete: if false;
+    }
+    
+    /**
+     * @description
+     *   Stores fee structure definitions. Any authenticated user can read these
+     *   to display fee information, and create new ones.
+     * @path /feeStructures/{feeId}
+     * @principle
+     *   Allows public read and create for bootstrapping the fees feature.
+     */
+    match /feeStructures/{feeId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update: if false;
+        allow delete: if false;
+    }
+
+    /**
+     * @description
+     *   Stores the fee status for each student. Read access is allowed for any
+     *   signed-in user to see fee details on profile pages.
+     * @path /studentFees/{studentFeeId}
+     * @principle
+     *   Allows public read for displaying fee status.
+     */
+    match /studentFees/{studentFeeId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update: if false;
+        allow delete: if false;
+    }
+
+
+    /**
+     * @description
      *   Stores sensitive grade information. Access to this collection is
      *   completely denied because the current data model lacks the necessary
      *   fields (e.g., student's auth `userId`, course's `teacherId`) to create
