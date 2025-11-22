@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -24,6 +25,8 @@ export default function LoginPage() {
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
+    // If the user is authenticated, redirect them to the dashboard.
+    // This handles the case where a logged-in user tries to access the login page.
     if (!isUserLoading && user) {
       router.push('/dashboard');
     }
@@ -61,9 +64,11 @@ export default function LoginPage() {
     }
   };
   
-  if (isUserLoading || user) {
-    return <div className="flex h-screen w-screen items-center justify-center"><p>Loading...</p></div>;
-  }
+  // This loading check can cause issues during logout.
+  // The useEffect above is sufficient to handle redirects for authenticated users.
+  // if (isUserLoading || user) {
+  //   return <div className="flex h-screen w-screen items-center justify-center"><p>Loading...</p></div>;
+  // }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
