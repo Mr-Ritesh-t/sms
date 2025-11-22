@@ -1,3 +1,4 @@
+
 export type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
 
 export type UserProfile = {

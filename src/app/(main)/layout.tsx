@@ -1,6 +1,6 @@
 
 'use client';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { School } from 'lucide-react';
 import { MainNav } from '@/components/navigation/main-nav';
@@ -77,11 +77,9 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
             <UserNav />
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset>
-          <div className="flex flex-col h-full">
-            {children}
-          </div>
-        </SidebarInset>
+        <main className="flex flex-col h-full">
+          {children}
+        </main>
       </SidebarProvider>
     </UserRoleProvider>
   );

@@ -1,3 +1,4 @@
+
 /**
  * Core Philosophy: This ruleset enforces a security model with a clear separation
  * between private user data and shared application data. It prioritizes strict
