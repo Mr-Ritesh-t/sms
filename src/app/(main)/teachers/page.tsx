@@ -1,3 +1,4 @@
+'use client';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -5,9 +6,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlusCircle, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
-import { teachers } from '@/lib/data';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Teacher } from '@/lib/types';
+
 
 export default function TeachersPage() {
+  const firestore = useFirestore();
+  const teachersCollection = useMemoFirebase(() => collection(firestore, 'teachers'), [firestore]);
+  const { data: teachers, isLoading } = useCollection<Omit<Teacher, 'id'>>(teachersCollection);
+
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">
       <PageHeader title="Teachers">
@@ -38,15 +46,16 @@ export default function TeachersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {teachers.map((teacher) => (
+              {isLoading && <TableRow><TableCell colSpan={5} className="text-center">Loading...</TableCell></TableRow>}
+              {teachers?.map((teacher) => (
                 <TableRow key={teacher.id}>
                   <TableCell className="hidden sm:table-cell">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={teacher.avatarUrl} alt={teacher.name} data-ai-hint="person" />
-                      <AvatarFallback>{teacher.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={teacher.avatarUrl} alt={`${teacher.firstName} ${teacher.lastName}`} data-ai-hint="person" />
+                      <AvatarFallback>{teacher.firstName.charAt(0)}{teacher.lastName.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </TableCell>
-                  <TableCell className="font-medium">{teacher.name}</TableCell>
+                  <TableCell className="font-medium">{teacher.firstName} {teacher.lastName}</TableCell>
                   <TableCell>{teacher.department}</TableCell>
                   <TableCell className="hidden md:table-cell">{teacher.email}</TableCell>
                   <TableCell className="text-right">

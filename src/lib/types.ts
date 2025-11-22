@@ -1,16 +1,16 @@
 export type Student = {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   enrollmentDate: string;
-  avatarUrl: string;
-  address: string;
-  phone: string;
+  phone?: string;
 };
 
 export type Teacher = {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   department: string;
   avatarUrl: string;
@@ -21,11 +21,9 @@ export type Teacher = {
 export type Course = {
   id: string;
   name: string;
-  code: string;
   description: string;
-  teacherId: string;
   schedule: string;
-  credits: number;
+  teacherId: string;
 };
 
 export type Enrollment = {

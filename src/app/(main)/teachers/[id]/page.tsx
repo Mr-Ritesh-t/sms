@@ -1,5 +1,5 @@
+'use client';
 import { notFound } from 'next/navigation';
-import { getTeacherById, getCoursesByTeacher } from '@/lib/data';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,15 +8,28 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Mail, Phone, Building } from 'lucide-react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
+import type { Teacher, Course } from '@/lib/types';
+
 
 export default function TeacherProfilePage({ params }: { params: { id: string } }) {
-  const teacher = getTeacherById(params.id);
+  const firestore = useFirestore();
+  const teacherRef = useMemoFirebase(() => doc(firestore, 'teachers', params.id), [firestore, params.id]);
+  const { data: teacher, isLoading: teacherLoading } = useDoc<Omit<Teacher, 'id'>>(teacherRef);
+
+  const coursesQuery = useMemoFirebase(() => query(collection(firestore, 'courses'), where('teacherId', '==', params.id)), [firestore, params.id]);
+  const { data: assignedCourses, isLoading: coursesLoading } = useCollection<Course>(coursesQuery);
+
+  if (teacherLoading || coursesLoading) {
+    return <div className="flex-1 space-y-4 p-4 sm:p-6">Loading...</div>;
+  }
 
   if (!teacher) {
     notFound();
   }
-
-  const assignedCourses = getCoursesByTeacher(teacher.id);
+  
+  const teacherName = `${teacher.firstName} ${teacher.lastName}`;
 
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">
@@ -28,12 +41,12 @@ export default function TeacherProfilePage({ params }: { params: { id: string } 
           <Card>
             <CardHeader className="items-center text-center">
               <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={teacher.avatarUrl} alt={teacher.name} data-ai-hint="person" />
+                <AvatarImage src={teacher.avatarUrl} alt={teacherName} data-ai-hint="person" />
                 <AvatarFallback className="text-3xl">
-                  {teacher.name.split(' ').map(n => n[0]).join('')}
+                  {teacher.firstName[0]}{teacher.lastName[0]}
                 </AvatarFallback>
               </Avatar>
-              <CardTitle className="text-2xl">{teacher.name}</CardTitle>
+              <CardTitle className="text-2xl">{teacherName}</CardTitle>
               <CardDescription>{teacher.department} Department</CardDescription>
             </CardHeader>
             <CardContent>
@@ -58,14 +71,14 @@ export default function TeacherProfilePage({ params }: { params: { id: string } 
             <Card>
                 <CardHeader>
                     <CardTitle>Assigned Courses</CardTitle>
-                    <CardDescription>Courses taught by {teacher.name}.</CardDescription>
+                    <CardDescription>Courses taught by {teacherName}.</CardDescription>
                 </CardHeader>
                 <CardContent>
                 <Table>
                     <TableHeader>
                     <TableRow>
                         <TableHead>Course</TableHead>
-                        <TableHead>Code</TableHead>
+                        <TableHead>Description</TableHead>
                         <TableHead className="text-right">Schedule</TableHead>
                          <TableHead>
                             <span className="sr-only">Actions</span>
@@ -73,10 +86,10 @@ export default function TeacherProfilePage({ params }: { params: { id: string } 
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {assignedCourses.map((course) => (
+                    {assignedCourses?.map((course) => (
                         <TableRow key={course.id}>
                             <TableCell className="font-medium">{course.name}</TableCell>
-                            <TableCell>{course.code}</TableCell>
+                            <TableCell>{course.description}</TableCell>
                             <TableCell className="text-right">{course.schedule}</TableCell>
                             <TableCell className="text-right">
                                 <Button asChild variant="ghost" size="icon">

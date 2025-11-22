@@ -1,21 +1,41 @@
+'use client';
 import { notFound } from 'next/navigation';
-import { getCourseById, getTeacherById, getStudentsByCourse, grades as allGrades } from '@/lib/data';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Book, Clock, User, Award, Users } from 'lucide-react';
 import { GradeSubmissionForm } from './GradeSubmissionForm';
+import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
+import type { Course, Teacher, Student, Grade, Enrollment } from '@/lib/types';
+
 
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {
-  const course = getCourseById(params.id);
+  const firestore = useFirestore();
+  const courseRef = useMemoFirebase(() => doc(firestore, 'courses', params.id), [firestore, params.id]);
+  const { data: course, isLoading: courseLoading } = useDoc<Omit<Course, 'id'>>(courseRef);
+
+  const teacherRef = useMemoFirebase(() => course ? doc(firestore, 'teachers', course.teacherId) : null, [firestore, course]);
+  const { data: teacher, isLoading: teacherLoading } = useDoc<Omit<Teacher, 'id'>>(teacherRef);
+
+  const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('courseId', '==', params.id)), [firestore, params.id]);
+  const { data: enrollments, isLoading: enrollmentsLoading } = useCollection<Enrollment>(enrollmentsQuery);
+  
+  const studentIds = useMemoFirebase(() => enrollments?.map(e => e.studentId) || [], [enrollments]);
+  const studentsQuery = useMemoFirebase(() => studentIds.length > 0 ? query(collection(firestore, 'students'), where('id', 'in', studentIds)) : null, [firestore, studentIds]);
+  const { data: enrolledStudents, isLoading: studentsLoading } = useCollection<Student>(studentsQuery);
+
+  const initialGradesQuery = useMemoFirebase(() => query(collection(firestore, 'grades'), where('courseId', '==', params.id)), [firestore, paramsid]);
+  const { data: initialGrades, isLoading: gradesLoading } = useCollection<Grade>(initialGradesQuery);
+
+
+  if (courseLoading || teacherLoading || studentsLoading || enrollmentsLoading || gradesLoading) {
+    return <div className="flex-1 space-y-4 p-4 sm:p-6">Loading...</div>;
+  }
 
   if (!course) {
     notFound();
   }
-
-  const teacher = getTeacherById(course.teacherId);
-  const enrolledStudents = getStudentsByCourse(course.id);
-  const initialGrades = allGrades.filter(g => g.courseId === course.id);
 
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">
@@ -30,7 +50,7 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                 <Book className="h-5 w-5" />
                 <span>Course Details</span>
               </CardTitle>
-               <CardDescription>{course.code}</CardDescription>
+               <CardDescription>{course.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">{course.description}</p>
@@ -38,7 +58,7 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <strong>Teacher:</strong>
-                  <span>{teacher?.name || 'N/A'}</span>
+                  <span>{teacher ? `${teacher.firstName} ${teacher.lastName}` : 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
@@ -48,12 +68,12 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                 <div className="flex items-center gap-2">
                   <Award className="h-4 w-4 text-muted-foreground" />
                   <strong>Credits:</strong>
-                  <span>{course.credits}</span>
+                  <span>N/A</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <strong>Enrolled:</strong>
-                  <span>{enrolledStudents.length} students</span>
+                  <span>{enrolledStudents?.length || 0} students</span>
                 </div>
               </div>
             </CardContent>
@@ -67,8 +87,8 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
             </CardHeader>
             <CardContent>
               <GradeSubmissionForm 
-                students={enrolledStudents}
-                initialGrades={initialGrades}
+                students={enrolledStudents || []}
+                initialGrades={initialGrades || []}
                 courseId={course.id}
               />
             </CardContent>

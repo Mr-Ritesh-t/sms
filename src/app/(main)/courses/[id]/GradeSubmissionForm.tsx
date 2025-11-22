@@ -28,6 +28,7 @@ export function GradeSubmissionForm({ students, initialGrades, courseId }: Grade
   };
 
   const handleSubmit = () => {
+    // Here you would typically save the grades to your backend, e.g., Firestore
     console.log('Submitting grades:', { courseId, grades });
     toast({
       title: "Grades Saved",
@@ -51,11 +52,11 @@ export function GradeSubmissionForm({ students, initialGrades, courseId }: Grade
             <TableRow key={student.id}>
               <TableCell>
                 <Avatar>
-                  <AvatarImage src={student.avatarUrl} alt={student.name} data-ai-hint="person" />
-                  <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={`https://picsum.photos/seed/${student.id}/100/100`} alt={`${student.firstName} ${student.lastName}`} data-ai-hint="person" />
+                  <AvatarFallback>{student.firstName.charAt(0)}{student.lastName.charAt(0)}</AvatarFallback>
                 </Avatar>
               </TableCell>
-              <TableCell className="font-medium">{student.name}</TableCell>
+              <TableCell className="font-medium">{student.firstName} {student.lastName}</TableCell>
               <TableCell className="text-muted-foreground">{student.id}</TableCell>
               <TableCell>
                 <Input
