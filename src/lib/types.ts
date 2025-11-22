@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
 
 export type UserProfile = {
@@ -74,3 +75,4 @@ export type Payment = {
     paymentDate: string;
     method: string;
 };
+

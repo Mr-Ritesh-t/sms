@@ -11,6 +11,7 @@ import { doc, collection, query, where } from 'firebase/firestore';
 import type { Course, Teacher, Student, Grade, Enrollment } from '@/lib/types';
 import { useUserRole } from '@/hooks/use-user-role';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useMemo } from 'react';
 
 
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {
@@ -26,7 +27,7 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
   const enrollmentsQuery = useMemoFirebase(() => query(collection(firestore, 'enrollments'), where('courseId', '==', id)), [firestore, id]);
   const { data: enrollments, isLoading: enrollmentsLoading } = useCollection<Enrollment>(enrollmentsQuery);
   
-  const studentIds = useMemoFirebase(() => enrollments?.map(e => e.studentId) || [], [enrollments]);
+  const studentIds = useMemo(() => enrollments?.map(e => e.studentId) || [], [enrollments]);
   
   const studentsQuery = useMemoFirebase(() => {
     if (studentIds.length > 0) {

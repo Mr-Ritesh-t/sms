@@ -96,7 +96,7 @@ service cloud.firestore {
 */
     match /courses/{courseId} {
       allow get, list: if isSignedIn();
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
 
 
@@ -137,18 +137,17 @@ service cloud.firestore {
 
     /**
      * @description
-     *   Stores sensitive grade information. Access to this collection is
-     *   completely denied because the current data model lacks the necessary
-     *   fields (e.g., student's auth `userId`, course's `teacherId`) to create
-     *   secure authorization rules.
+     *   Stores sensitive grade information.
+     *   TODO: Restrict write access to only the teacher assigned to the course.
+     *   This requires denormalizing the teacher's user ID onto the course document.
      * @path /grades/{gradeId}
      */
     match /grades/{gradeId} {
-      // CRITICAL: Access is fully denied. The 'Grade' entity schema does not contain
-      // denormalized user IDs for the student or teacher, making it impossible to
-      // write secure rules. To enable access, denormalize the student's auth UID
-      // and the course's teacher's auth UID onto each grade document.
-      allow read, write, delete: if false;
+      allow read: if isSignedIn();
+      // For now, allow any signed-in user to write. This should be locked down.
+      // Example of a secure rule:
+      // allow write: if get(/databases/$(database)/documents/courses/$(request.resource.data.courseId)).data.teacherAuthId == request.auth.uid;
+      allow write: if isSignedIn();
     }
   }
 }
