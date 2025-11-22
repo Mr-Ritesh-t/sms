@@ -14,6 +14,7 @@ import { doc, collection, query, where } from 'firebase/firestore';
 import type { Student, Course, Grade, Enrollment, StudentFee, FeeStructure } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { EditStudentDialog } from '@/components/dialogs/edit-student-dialog';
 
 export default function StudentProfilePage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
@@ -77,7 +78,7 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
             Generate ID Card
           </Link>
         </Button>
-        <Button>Edit Profile</Button>
+        {student && <EditStudentDialog student={student} />}
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-1 space-y-6">
@@ -187,5 +188,3 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
     </div>
   );
 }
-
-    
