@@ -8,10 +8,12 @@ import { GradeSubmissionForm } from './GradeSubmissionForm';
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { Course, Teacher, Student, Grade, Enrollment } from '@/lib/types';
+import { useUserRole } from '@/hooks/use-user-role';
 
 
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
+  const { role } = useUserRole();
   const courseRef = useMemoFirebase(() => doc(firestore, 'courses', params.id), [firestore, params.id]);
   const { data: course, isLoading: courseLoading } = useDoc<Course>(courseRef);
 
@@ -43,10 +45,12 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
     notFound();
   }
 
+  const isTeacher = role === 'teacher';
+
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">
       <PageHeader title={course.name}>
-        <Button>Edit Course</Button>
+        {isTeacher && <Button>Edit Course</Button>}
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-1">
@@ -85,19 +89,41 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
           </Card>
         </div>
         <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Grade Submission</CardTitle>
-              <CardDescription>Enter and save grades for students enrolled in this course.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GradeSubmissionForm 
-                students={enrolledStudents || []}
-                initialGrades={initialGrades || []}
-                courseId={course.id}
-              />
-            </CardContent>
-          </Card>
+          {isTeacher ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Grade Submission</CardTitle>
+                <CardDescription>Enter and save grades for students enrolled in this course.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GradeSubmissionForm 
+                  students={enrolledStudents || []}
+                  initialGrades={initialGrades || []}
+                  courseId={course.id}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Enrolled Students</CardTitle>
+                <CardDescription>List of students taking this course.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul>
+                  {enrolledStudents?.map(student => (
+                    <li key={student.id} className="flex items-center gap-3 py-2">
+                      <Avatar>
+                         <AvatarImage src={`https://picsum.photos/seed/${student.id}/100/100`} alt={`${student.firstName} ${student.lastName}`} data-ai-hint="person" />
+                         <AvatarFallback>{student.firstName.charAt(0)}{student.lastName.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span>{student.firstName} {student.lastName}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

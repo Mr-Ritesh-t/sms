@@ -1,11 +1,10 @@
 export type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
 
 export type UserProfile = {
-  id: string;
+  id: string; // This should match the Firebase Auth UID
   role: UserRole;
-  studentId?: string;
-  teacherId?: string;
-  parentId?: string;
+  studentId?: string; // Link to student profile if role is 'student' or 'parent'
+  teacherId?: string; // Link to teacher profile if role is 'teacher'
 };
 
 export type Student = {
@@ -15,6 +14,7 @@ export type Student = {
   email: string;
   enrollmentDate: string;
   phone?: string;
+  // No role property here, role is managed in UserProfile
 };
 
 export type Teacher = {
@@ -26,6 +26,7 @@ export type Teacher = {
   avatarUrl: string;
   office: string;
   phone: string;
+  // No role property here, role is managed in UserProfile
 };
 
 export type Course = {
