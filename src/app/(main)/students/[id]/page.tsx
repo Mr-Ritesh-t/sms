@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Mail, Phone, Calendar } from 'lucide-react';
+import { Mail, Phone, Calendar, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { Student, Course, Grade, Enrollment, StudentFee, FeeStructure } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 export default function StudentProfilePage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
@@ -69,6 +70,12 @@ export default function StudentProfilePage({ params }: { params: { id: string } 
   return (
     <div className="flex-1 space-y-4 p-4 sm:p-6">
       <PageHeader title="Student Profile">
+        <Button asChild variant="outline">
+          <Link href={`/students/${params.id}/id-card`}>
+            <CreditCard className="mr-2 h-4 w-4" />
+            Generate ID Card
+          </Link>
+        </Button>
         <Button>Edit Profile</Button>
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-3">
