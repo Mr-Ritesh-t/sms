@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { UserRoleProvider } from '@/hooks/use-user-role';
+import { redirect } from 'next/navigation';
 
 // NOTE: The server-side redirect logic has been moved to a higher-level layout
 // or middleware. This component now assumes it will only be rendered for
@@ -28,7 +29,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   useEffect(() => {
-    // Fallback client-side check
+    // Fallback client-side check in case the server-side check fails
     if (!isUserLoading && !user) {
       router.push('/login');
     }
@@ -36,6 +37,8 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
   const isLoading = isUserLoading || isProfileLoading;
 
+  // If we are loading or the user is not authenticated, show a loading screen.
+  // The server redirect or the useEffect above will handle navigation to the login page.
   if (isLoading || !user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">

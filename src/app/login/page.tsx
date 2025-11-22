@@ -63,12 +63,9 @@ export default function LoginPage() {
       setError(err.message);
     }
   };
-  
-  // This loading check can cause issues during logout.
-  // The useEffect above is sufficient to handle redirects for authenticated users.
-  // if (isUserLoading || user) {
-  //   return <div className="flex h-screen w-screen items-center justify-center"><p>Loading...</p></div>;
-  // }
+
+  // We no longer need a loading state here. The main app layout handles it.
+  // If the user lands on this page, we can be confident they are logged out.
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
