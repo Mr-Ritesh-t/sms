@@ -1,14 +1,16 @@
+
 'use client';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Book, Clock, User, Award, Users } from 'lucide-react';
-import { GradeSubmissionForm } from './GradeSubmissionForm';
+import { GradeSubmissionForm } from '@/components/forms/GradeSubmissionForm';
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import type { Course, Teacher, Student, Grade, Enrollment } from '@/lib/types';
 import { useUserRole } from '@/hooks/use-user-role';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {

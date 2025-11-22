@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import Link from 'next/link';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Teacher } from '@/lib/types';
-import { AddTeacherDialog } from './_components/add-teacher-dialog';
+import { AddTeacherDialog } from '@/components/dialogs/add-teacher-dialog';
 
 export default function TeachersPage() {
   const firestore = useFirestore();

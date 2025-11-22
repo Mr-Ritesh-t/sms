@@ -1,9 +1,10 @@
+
 'use client';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { School } from 'lucide-react';
-import { MainNav } from './_components/main-nav';
-import { UserNav } from './_components/user-nav';
+import { MainNav } from '@/components/navigation/main-nav';
+import { UserNav } from '@/components/navigation/user-nav';
 import { FirebaseClientProvider, useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';

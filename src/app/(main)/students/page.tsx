@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/PageHeader';
@@ -5,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlusCircle, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Student } from '@/lib/types';
-import { AddStudentDialog } from './_components/add-student-dialog';
+import { AddStudentDialog } from '@/components/dialogs/add-student-dialog';
 
 export default function StudentsPage() {
   const firestore = useFirestore();

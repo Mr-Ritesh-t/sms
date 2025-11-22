@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { FeeStructure } from '@/lib/types';
-import { AddFeeDialog } from './_components/add-fee-dialog';
+import { AddFeeDialog } from '@/components/dialogs/add-fee-dialog';
 
 export default function FeesPage() {
   const firestore = useFirestore();
